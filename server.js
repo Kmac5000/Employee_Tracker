@@ -5,13 +5,16 @@ const express = require("express");
 const mysql = require("mysql2");
 const cTable = require("console.table");
 
-// const connection = mysql.createConnection({
-//   host: "localhost",
-//   port: 3306,
-//   DB_USER,
-//   DB_PASSWORD,
-//   DB_NAME,
-// });
+const connection = mysql.createConnection(
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  process.env.DB_NAME,
+  {
+    host: "localhost",
+    dialect: "mysql",
+    port: 3001,
+  }
+);
 
 function startProgram() {
   inquirer.prompt([
