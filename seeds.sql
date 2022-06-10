@@ -2,7 +2,7 @@ INSERT INTO department (id, name)
 VALUES (001, "Leaders"),
        (002, "Clowns"),
        (003, "Animals"),
-       (004, "Maintenance")
+       (004, "Maintenance"),
        (005, "Volunteer");
 
 INSERT INTO role (id, title, salary, department_id)

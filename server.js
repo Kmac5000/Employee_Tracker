@@ -1,23 +1,37 @@
-require("dotenv").config();
+// require("dotenv").config();
 
 const inquirer = require("inquirer");
 const express = require("express");
 const mysql = require("mysql2");
 const cTable = require("console.table");
 
-const connection = mysql.createConnection(
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  process.env.DB_NAME,
-  {
-    host: "localhost",
-    dialect: "mysql",
-    port: 3001,
-  }
-);
+// const connection = mysql.createConnection(
+//   process.env.DB_USER,
+//   process.env.DB_PASSWORD,
+//   process.env.DB_NAME,
+//   {
+//     host: "localhost",EXIT
+//     dialect: "mysql",
+//     port: 3001,
+//   }
+// );
+
+// connection.connect(function (err) {
+//   if (err) throw err;
+//   startProgram();
+// });
+
+const connection = mysql.createConnection({
+  host: "localhost",
+  port: 3306,
+  user: "root",
+  password: "password",
+  database: "employees_db",
+});
 
 connection.connect(function (err) {
   if (err) throw err;
+
   startProgram();
 });
 
@@ -35,12 +49,19 @@ function startProgram() {
         "Add Employee",
         "Update Employee Role",
       ],
+      // when: (choice) => viewAllDepartments(),
     },
   ]);
 }
 
 function viewAllDepartments() {
   // department names, department ids
+  let departments = "SELECT * FROM department";
+  connection.query(departments, function (err, res) {
+    if (err) throw err;
+    console.table("All Departments:", res);
+    startProgram();
+  });
 }
 
 function viewAllRoles() {
