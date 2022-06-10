@@ -16,23 +16,95 @@ const connection = mysql.createConnection(
   }
 );
 
+connection.connect(function (err) {
+  if (err) throw err;
+  startProgram();
+});
+
 function startProgram() {
   inquirer.prompt([
     {
       type: "list",
-      message: "What do you need to see?",
+      message: "Please choose one",
       name: "choice",
       choices: [
-        "View All Employees?",
-        "View All Employee's By Roles?",
-        "View all Emplyees By Deparments",
-        "Update Employee",
-        "Add Employee?",
-        "Add Role?",
-        "Add Department?",
+        "View All Departments",
+        "View All Roles",
+        "View all Employees",
+        "Add Department",
+        "Add Employee",
+        "Update Employee Role",
       ],
     },
   ]);
 }
 
-startProgram();
+function viewAllDepartments() {
+  // department names, department ids
+}
+
+function viewAllRoles() {
+  // job titles, role id, department that role is in, salary for that role
+}
+
+function viewAllEmployees() {
+  //  employee ids, first names, last names, job titles, salaries, employee's manager
+}
+
+function addDepartment() {
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "Name of New Department",
+      name: "new_department",
+    },
+  ]);
+  // .then update database/department table
+}
+
+// first_name, last_name, role, manager
+function addEmployee() {
+  inquirer.prompt([
+    {
+      type: "input",
+      message: "Employee First Name",
+      name: "first_name",
+    },
+    {
+      type: "input",
+      message: "Employee Last Name",
+      name: "last_name",
+    },
+    {
+      type: "list",
+      message: "role",
+      name: "emp_role",
+      // choices: pull from role table
+    },
+    {
+      type: "list",
+      message: "Employee Manager",
+      name: "emp_manager",
+      // choices: pull from list of managers
+    },
+  ]);
+  // .then push to database
+}
+
+function updateEmployeeRole() {
+  inquirer.prompt([
+    {
+      type: "list",
+      message: "who is the employee",
+      name: "employee_new_role",
+      // pull name from employee table
+    },
+    {
+      type: "list",
+      message: "new role",
+      name: "new_role",
+      // pull from role table
+    },
+  ]);
+  // .then update in database
+}
