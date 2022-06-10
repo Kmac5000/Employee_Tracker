@@ -36,40 +36,83 @@ connection.connect(function (err) {
 });
 
 function startProgram() {
-  inquirer.prompt([
-    {
-      type: "list",
-      message: "Please choose one",
-      name: "choice",
-      choices: [
-        "View All Departments",
-        "View All Roles",
-        "View all Employees",
-        "Add Department",
-        "Add Employee",
-        "Update Employee Role",
-      ],
-      // when: (choice) => viewAllDepartments(),
-    },
-  ]);
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "Please choose one",
+        name: "choice",
+        choices: [
+          "View All Departments",
+          "View All Roles",
+          "View all Employees",
+          "Add Department",
+          "Add Employee",
+          "Update Employee Role",
+        ],
+      },
+    ])
+    .then((choices) => {
+      console.log("these are the" + choices);
+
+      if (choices === "View All Departments") {
+        viewAllDepartments();
+      }
+
+      if (choices === "View All Roles") {
+        viewAllRoles();
+      }
+
+      if (choices === "View all Employees") {
+        viewAllEmployees();
+      }
+
+      if (choices === "Add Department") {
+        addDepartment();
+      }
+
+      if (choices === "Add Employee") {
+        addEmployee();
+      }
+
+      if (choices === "Update Employee Role") {
+        updateEmployeeRole();
+      }
+    });
 }
 
 function viewAllDepartments() {
+  console.log("all departments");
   // department names, department ids
   let departments = "SELECT * FROM department";
   connection.query(departments, function (err, res) {
     if (err) throw err;
-    console.table("All Departments:", res);
+    cTable("All Departments:", res);
+    cTable(rows);
     startProgram();
   });
 }
 
 function viewAllRoles() {
   // job titles, role id, department that role is in, salary for that role
+  let roles = "SELECT * role";
+  connection.query(roles, function (err, res) {
+    if (err) throw err;
+    cTable("All Roles:", res);
+    cTable(rows);
+    startProgram();
+  });
 }
 
 function viewAllEmployees() {
   //  employee ids, first names, last names, job titles, salaries, employee's manager
+  let allEmp = "SELECT * employee";
+  connection.query(allEmp, function (err, res) {
+    if (err) throw err;
+    cTable("All Employees:", res);
+    cTable(rows);
+    startProgram();
+  });
 }
 
 function addDepartment() {
