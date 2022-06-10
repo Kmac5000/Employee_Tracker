@@ -36,30 +36,30 @@ function startProgram() {
         ],
       },
     ])
-    .then((choices) => {
-      console.log("these are the" + choices);
+    .then(({ choice }) => {
+      console.log("these are the" + choice);
 
-      if (choices === "View All Departments") {
+      if (choice === "View All Departments") {
         viewAllDepartments();
       }
 
-      if (choices === "View All Roles") {
+      if (choice === "View All Roles") {
         viewAllRoles();
       }
 
-      if (choices === "View all Employees") {
+      if (choice === "View all Employees") {
         viewAllEmployees();
       }
 
-      if (choices === "Add Department") {
+      if (choice === "Add Department") {
         addDepartment();
       }
 
-      if (choices === "Add Employee") {
+      if (choice === "Add Employee") {
         addEmployee();
       }
 
-      if (choices === "Update Employee Role") {
+      if (choice === "Update Employee Role") {
         updateEmployeeRole();
       }
     });
@@ -68,75 +68,111 @@ function startProgram() {
 function viewAllDepartments() {
   console.log("all departments");
   // department names, department ids
-  let departments = "SELECT * FROM department";
+  let departments = "SELECT department.name, department.id FROM department";
   connection.query(departments, function (err, res) {
     if (err) throw err;
-    cTable("All Departments:", res);
-    cTable(rows);
+    console.table(res);
     startProgram();
   });
 }
 
 function viewAllRoles() {
   // job titles, role id, department that role is in, salary for that role
-  let roles = "SELECT * role";
+  let roles =
+    "SELECT role.title, role.id, role.salary, department.name AS department FROM role INNER JOIN department ON role.department_id = department.id";
+
   connection.query(roles, function (err, res) {
     if (err) throw err;
-    cTable("All Roles:", res);
-    cTable(rows);
+    console.table(res);
     startProgram();
   });
 }
 
 function viewAllEmployees() {
   //  employee ids, first names, last names, job titles, salaries, employee's manager
-  let allEmp = "SELECT * employee";
+  let allEmp =
+    "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, CONCAT (manager.first_name, SPACE(1), manager.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN employee manager ON employee.manager_id = manager.id";
   connection.query(allEmp, function (err, res) {
     if (err) throw err;
-    cTable("All Employees:", res);
-    cTable(rows);
+    console.table(res);
     startProgram();
   });
 }
 
 function addDepartment() {
-  inquirer.prompt([
-    {
-      type: "input",
-      message: "Name of New Department",
-      name: "new_department",
-    },
-  ]);
-  // .then update database/department table
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "Name of New Department",
+        name: "new_department",
+      },
+    ])
+    .then((newDep) => {
+      const sql = `INSERT INTO department (name) VALUES (?)`;
+      connection.query(sql, newDep.new_department, (err, res) => {
+        if (err) throw err;
+        console.log("Added " + newDep.new_department + " to departments");
+
+        startProgram();
+      });
+    });
 }
 
 // first_name, last_name, role, manager
 function addEmployee() {
-  inquirer.prompt([
-    {
-      type: "input",
-      message: "Employee First Name",
-      name: "first_name",
-    },
-    {
-      type: "input",
-      message: "Employee Last Name",
-      name: "last_name",
-    },
-    {
-      type: "list",
-      message: "role",
-      name: "emp_role",
-      // choices: pull from role table
-    },
-    {
-      type: "list",
-      message: "Employee Manager",
-      name: "emp_manager",
-      // choices: pull from list of managers
-    },
-  ]);
-  // .then push to database
+  const roleSql = `SELECT role.id, role.title FROM role`;
+
+  connection.query(roleSql, (err, data) => {
+    if (err) throw err;
+
+    const roles = data.map(({ id, title }) => ({ name: title, value: id }));
+
+    const managerSql = `SELECT * FROM employee`;
+
+    connection.query(managerSql, (err, data) => {
+      if (err) throw err;
+
+      const managers = data.map(({ id, first_name, last_name }) => ({
+        name: first_name + " " + last_name,
+        value: id,
+      }));
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            message: "Employee First Name",
+            name: "first_name",
+          },
+          {
+            type: "input",
+            message: "Employee Last Name",
+            name: "last_name",
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "What is the employee's role?",
+            choices: roles,
+          },
+          {
+            type: "list",
+            name: "manager",
+            message: "Who is the employee's manager?",
+            choices: managers,
+          },
+        ])
+        .then(({ newEmp }) => {
+          const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (first_name, last_name, role_id, manager_id )`;
+          connection.query(sql, newEmp, (err, res) => {
+            if (err) throw err;
+            console.log("Added to employees");
+
+            startProgram();
+          });
+        });
+    });
+  });
 }
 
 function updateEmployeeRole() {
