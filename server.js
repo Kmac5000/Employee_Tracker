@@ -119,7 +119,33 @@ function addDepartment() {
     });
 }
 
-// first_name, last_name, role, manager
+//================= Select Role Quieries Role Title for Add Employee Prompt ===========//
+var roleArr = [];
+function selectRole() {
+  connection.query("SELECT * FROM role", function (err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+      roleArr.push(res[i].title);
+    }
+  });
+  return roleArr;
+}
+//================= Select Role Quieries The Managers for Add Employee Prompt ===========//
+var managersArr = [];
+function selectManager() {
+  connection.query(
+    "SELECT first_name, last_name FROM employee WHERE manager_id IS NULL",
+    function (err, res) {
+      if (err) throw err;
+      for (var i = 0; i < res.length; i++) {
+        managersArr.push(res[i].first_name);
+      }
+    }
+  );
+  return managersArr;
+}
+
+// first_name, last_name, role, manager;
 function addEmployee() {
   const roleSql = `SELECT role.id, role.title FROM role`;
 
@@ -133,9 +159,9 @@ function addEmployee() {
     connection.query(managerSql, (err, data) => {
       if (err) throw err;
 
-      const managers = data.map(({ id, first_name, last_name }) => ({
+      const managers = data.map(({ first_name, last_name, manager_id }) => ({
         name: first_name + " " + last_name,
-        value: id,
+        value: manager_id,
       }));
       inquirer
         .prompt([
@@ -162,33 +188,74 @@ function addEmployee() {
             choices: managers,
           },
         ])
-        .then(({ newEmp }) => {
-          const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (first_name, last_name, role_id, manager_id )`;
-          connection.query(sql, newEmp, (err, res) => {
-            if (err) throw err;
-            console.log("Added to employees");
-
-            startProgram();
-          });
+        .then((newEmp) => {
+          var whatDo = selectRole().indexOf(newEmp.roles) + 1;
+          var managerId = selectManager().indexOf(newEmp.manager) + 1;
+          connection.query(
+            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (first_name, last_name, role_id, manager_id )`,
+            {
+              // sql,
+              first_name: newEmp.first_name,
+              last_name: newEmp.last_name,
+              role_id: whatDo,
+              manager_id: managerId,
+            },
+            (err, res) => {
+              if (err) throw err;
+              console.log("Added to employees");
+              startProgram();
+            }
+          );
         });
     });
   });
 }
 
 function updateEmployeeRole() {
-  inquirer.prompt([
-    {
-      type: "list",
-      message: "who is the employee",
-      name: "employee_new_role",
-      // pull name from employee table
-    },
-    {
-      type: "list",
-      message: "new role",
-      name: "new_role",
-      // pull from role table
-    },
-  ]);
-  // .then update in database
+  connection.query(
+    "SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;",
+    function (err, res) {
+      // console.log(res)
+      if (err) throw err;
+      console.log(res);
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "What is the Employee's last name? ",
+            name: "last_name",
+            choices: function () {
+              var lastName = [];
+              for (var i = 0; i < res.length; i++) {
+                lastName.push(res[i].last_name);
+              }
+              return lastName;
+            },
+          },
+          {
+            type: "list",
+            message: "What is the Employees new title? ",
+            name: "role",
+            choices: selectRole(),
+          },
+        ])
+        .then(function (data) {
+          var roleId = selectRole().indexOf(data.role) + 1;
+          connection.query(
+            "UPDATE employee SET WHERE ?",
+            {
+              last_name: val.lastName,
+            },
+            {
+              role_id: roleId,
+            },
+            function (err) {
+              if (err) throw err;
+              console.table(val);
+              startPrompt();
+            }
+          );
+        });
+    }
+  );
 }
